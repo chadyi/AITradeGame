@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AITradeGame</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">AITradeGame</h1>
+                    <div class="header-status">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">运行中</span>
+                    </div>
+                    <a href="https://github.com/chadyi/AITradeGame" target="_blank" class="header-link" title="访问项目GitHub">
+                        <i class="bi bi-github"></i>
+                        <span class="header-link-text">GitHub</span>
+                    </a>
+                </div>
+                <div class="header-right">
+                    <div class="update-indicator" id="updateIndicator" style="display: none;">
+                        <button class="btn-icon update-btn" id="checkUpdateBtn" title="检查更新">
+                            <i class="bi bi-arrow-up-circle"></i>
+                        </button>
+                    </div>
+                    <button class="btn-icon" id="refreshBtn" title="刷新">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="btn-secondary" id="settingsBtn">
+                        <i class="bi bi-gear"></i>
+                        设置
+                    </button>
+                    <button class="btn-secondary" id="addApiProviderBtn">
+                        <i class="bi bi-cloud-plus"></i>
+                        API提供方
+                    </button>
+                    <button class="btn-primary" id="addModelBtn">
+                        <i class="bi bi-plus-lg"></i>
+                        添加模型
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="app-body">
+            <!-- Sidebar -->
+            <aside class="app-sidebar">
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <span>交易模型</span>
+                    </div>
+                    <div id="modelList" class="model-list"></div>
+                </div>
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <span>市场行情</span>
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div id="marketPrices" class="market-prices"></div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="app-main">
+                <!-- Stats Cards -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">账户总值</span>
+                            <i class="bi bi-wallet2 text-primary"></i>
+                        </div>
+                        <div class="stat-value">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">可用现金</span>
+                            <i class="bi bi-cash text-success"></i>
+                        </div>
+                        <div class="stat-value">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">已实现盈亏</span>
+                            <i class="bi bi-graph-up text-info"></i>
+                        </div>
+                        <div class="stat-value">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">未实现盈亏</span>
+                            <i class="bi bi-graph-down text-warning"></i>
+                        </div>
+                        <div class="stat-value">$0.00</div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h3 class="card-title">账户价值走势</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="accountChart" style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="content-card">
+                    <div class="card-tabs">
+                        <button class="tab-btn active" data-tab="positions">持仓</button>
+                        <button class="tab-btn" data-tab="trades">交易记录</button>
+                        <button class="tab-btn" data-tab="conversations">AI对话</button>
+                    </div>
+
+                    <div class="tab-content active" id="positionsTab">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>币种</th>
+                                        <th>方向</th>
+                                        <th>数量</th>
+                                        <th>开仓价</th>
+                                        <th>当前价</th>
+                                        <th>杠杆</th>
+                                        <th>盈亏</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="positionsBody">
+                                    <tr><td colspan="7" class="empty-state">暂无持仓</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tradesTab">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>币种</th>
+                                        <th>操作</th>
+                                        <th>数量</th>
+                                        <th>价格</th>
+                                        <th>盈亏</th>
+                                        <th>费用</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tradesBody">
+                                    <tr><td colspan="6" class="empty-state">暂无交易记录</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="conversationsTab">
+                        <div id="conversationsBody" class="conversations-list">
+                            <div class="empty-state">暂无对话记录</div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- API Provider Modal -->
+    <div class="modal" id="apiProviderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>API提供方管理</h3>
+                <button class="btn-close" id="closeApiProviderModalBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>API名称</label>
+                    <input type="text" id="providerName" placeholder="例如: OpenAI" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>API地址</label>
+                    <input type="text" id="providerApiUrl" placeholder="https://api.openai.com" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>API密钥</label>
+                    <input type="password" id="providerApiKey" placeholder="sk-..." class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>可用模型</label>
+                    <div class="model-input-group">
+                        <input type="text" id="availableModels" placeholder="gpt-4, gpt-3.5-turbo" class="form-input">
+                        <button type="button" class="btn-secondary" id="fetchModelsBtn">
+                            <i class="bi bi-arrow-clockwise"></i> 获取模型
+                        </button>
+                    </div>
+                    <small class="form-help">手动输入模型名称，用逗号分隔，或点击获取模型按钮自动获取</small>
+                </div>
+                <div class="form-group">
+                    <label>已保存的API提供方</label>
+                    <div id="providerList" class="provider-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelApiProviderBtn">取消</button>
+                <button class="btn-primary" id="saveApiProviderBtn">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Model Modal -->
+    <div class="modal" id="addModelModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>添加交易模型</h3>
+                <button class="btn-close" id="closeModalBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>选择API提供方</label>
+                    <select id="modelProvider" class="form-input">
+                        <option value="">请先添加API提供方</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>模型</label>
+                    <select id="modelIdentifier" class="form-input">
+                        <option value="">请选择API提供方</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>模型显示名称</label>
+                    <input type="text" id="modelName" placeholder="例如: GPT-4交易员" class="form-input">
+                    <small class="form-help">用于显示的友好名称</small>
+                </div>
+                <div class="form-group">
+                    <label>初始资金</label>
+                    <input type="number" id="initialCapital" value="100000" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelBtn">取消</button>
+                <button class="btn-primary" id="submitBtn">确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>系统设置</h3>
+                <button class="btn-close" id="closeSettingsModalBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>交易频率（分钟）</label>
+                    <input type="number" id="tradingFrequency" min="1" max="1440" class="form-input" placeholder="60">
+                    <small class="form-help">设置AI交易决策的时间间隔（1-1440分钟）</small>
+                </div>
+                <div class="form-group">
+                    <label>交易费率</label>
+                    <input type="number" id="tradingFeeRate" min="0" max="0.01" step="0.0001" class="form-input" placeholder="0.001">
+                    <small class="form-help">每笔交易的手续费费率（0-0.01，例如0.001表示0.1%）</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelSettingsBtn">取消</button>
+                <button class="btn-primary" id="saveSettingsBtn">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Notification Modal -->
+    <div class="modal" id="updateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="bi bi-cloud-download text-info"></i>
+                    发现新版本
+                </h3>
+                <button class="btn-close" id="closeUpdateModalBtn">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="update-info">
+                    <div class="update-version">
+                        <div class="current-version">
+                            <i class="bi bi-cpu"></i>
+                            <span>当前版本：</span>
+                            <strong id="currentVersion">v1.0.0</strong>
+                        </div>
+                        <div class="arrow-down">
+                            <i class="bi bi-arrow-down"></i>
+                        </div>
+                        <div class="latest-version">
+                            <i class="bi bi-gem"></i>
+                            <span>最新版本：</span>
+                            <strong id="latestVersion" class="text-success">v1.1.0</strong>
+                        </div>
+                    </div>
+                    <div class="update-notes">
+                        <div class="notes-header">
+                            <i class="bi bi-journal-text"></i>
+                            <span>更新说明</span>
+                        </div>
+                        <div id="releaseNotes" class="notes-content">
+                            <p>新功能和改进将在此处显示...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="dismissUpdateBtn">稍后提醒</button>
+                <a href="#" id="githubLink" class="btn-primary" target="_blank">
+                    <i class="bi bi-github"></i>
+                    前往GitHub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
